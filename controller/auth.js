@@ -4,50 +4,50 @@ const  User = require("../models/user.js")
 const  {setResponse} = require("../utils");
 
 const register = async(req,res)=>{
-    let {firstname , lastname , username , email , password , dateOfBirth } = req.body;
+    console.log(req.body)
+    let {username , email , password , dateOfBirth } = req.body;
     try{
-        let userByName = await User.find({username});
-        let userByEmail = await User.find({email});
-        if(userByName && userByEmail){
+        let userByName = await User.findOne({username  : username});
+        console.log(userByName)
+        let userByEmail = await User.findOne({email : email});
+        console.log(userByEmail)
+        if(userByName || userByEmail){
             setResponse(res,400,'User already exist')
         }
 
-        password = bcrypt.genSalt(password,10);
-        const newUser = await new User({firstname,lastname,username,email,password,dateOfBirth})
+        password = bcrypt.hashSync(password,10);
+        console.log(password)
+        const newUser = await new User({username,email,password,dateOfBirth})
         await newUser.save();
         setResponse(res,200,"Registeration successful")
 
     }catch(err){
-        setResponse(res,err.status,err.message)
+        setResponse(res,500,err.message)
 
     }
 }
 
 const login = async (req,res)=>{
-    const {username , email , password} = req.body;
+    let { email , password} = req.body;
     try{
-        if(username){
-            let user = User.find({username});
-        }
-        if(email){
-            let user = User.find({email});
-        }
+
+        let user = await User.findOne({email : email});
     
         if(!user){
             return setResponse(res,404,"User not found")
         }
     
         let hashedPassword = user.password ;
-        password = await bcrypt.verify(password,hashedPassword);
+        password = bcrypt.compareSync(password,hashedPassword);
         if(!password){
             return setResponse(res,400,"Incorrect password")
         }
     
         const token =  jwt.sign({_id : user._id},process.env.JWT_SECRET);
-        const populateData  = user.populate('post');
-        setResponse(res,200,"Login successful")
+        const data  = await user.populate("post followers following savePost blockList");
+        setResponse(res,200,"Login successful",{token : token ,data})
     }catch(err){
-        setResponse(res,err.status,err.message)
+        setResponse(res,500,err.message)
     }
 
 }

@@ -15,7 +15,7 @@ const postShema = new mongoose.Schema({
   },
   like: [
     {
-      type: String,
+    type : mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
   ],
@@ -26,7 +26,7 @@ const postShema = new mongoose.Schema({
     },
   ],
 },{
-  timeStamps :true
+  timestamps :true
 });
 
 const Post = mongoose.model("Post", postShema);

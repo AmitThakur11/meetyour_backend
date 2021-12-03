@@ -1,7 +1,7 @@
 const setResponse = (res,status,msg,data)=>{
     switch(status){
         case 200:
-            return res.staus(status).json({
+            return res.status(status).json({
                 success : true,
                 msg,
                 data

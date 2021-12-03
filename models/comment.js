@@ -3,11 +3,11 @@ const mongoose = require("mongoose");
 const commentSchema = new mongoose.Schema(
   {
     author: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
     post: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
     },
     comment: {
@@ -21,7 +21,7 @@ const commentSchema = new mongoose.Schema(
     ],
   },
   {
-    timeStamps: true,
+    timestamps: true,
   }
 );
 

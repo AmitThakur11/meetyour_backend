@@ -1,14 +1,27 @@
 const Post =  require("../models/post");
 const User =  require("../models/user");
 const { setResponse } =  require("../utils");
+const mongoose = require('mongoose')
 
 const allPost = async (req, res) => {
   try {
-    const allPost = await Post.find({});
-    const populatePost = await allPost.populate("comment");
-    setResponse(res, 200, "post fetched", populatePost);
+    // let userId = req.user
+    // let user = await User.findById(userId);
+    // const allPost = await Post.find({});
+     await Post.find({}).populate(
+      [
+        {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
+        {path : "author" , select :"username displayPic"},
+        {path : "like",populate : [{path : "author" , select :"username displayPic"}]}
+      ]
+    ).exec((err,docs)=>{
+      if(err)throw err
+      setResponse(res, 200, "post fetched", docs);
+
+    })
+    
   } catch (err) {
-    setResponse(res, err.status, err.message);
+    setResponse(res, 500, err.message);
   }
 };
 const addPost = async (req, res) => {
@@ -19,40 +32,40 @@ const addPost = async (req, res) => {
       return setResponse(res, 400, "Caption needed");
     }
     const user = await User.findById(userId);
-    const newPost = await new Post({ author: caption, media });
+    const newPost = await new Post({ author : user._id , caption, media });
     await newPost.save();
     await user.post.unshift(newPost._id);
     user.save();
     setResponse(res, 200, "post uploaded successfully");
   } catch (err) {
-    setResponse(res, err.status, err.message);
+    setResponse(res, 500, err.message);
   }
 };
 
 const likePost = async (req, res) => {
-  const postId = req.postParam;
+  const postId = req.postId;
   const user = req.user;
-
-  // const user = User.findById(userId);
   try {
-    const post = Post.findById(postId);
+    const post = await Post.findById(postId);
+
+
     if (!post) {
       return setResponse(res, 400, "post unavailable");
     }
 
-
-    const liked = post.like.find((id) => id === user);
-    if (liked) {
+    
+    const liked = post.like.find((id) => id === user._id);
+    if(liked) {
       await post.like.pull(user);
       post.save();
-      setResponse(res, 200, "post unliked", post);
+      return setResponse(res, 200, "post unliked", post);
     }
 
     await post.like.unshift(user);
     await post.save();
     setResponse(res, 200, "post liked", post);
   } catch (err) {
-    setResponse(res, err.status, err.message);
+    setResponse(res,500, err.message);
   }
 };
 
@@ -62,21 +75,33 @@ const likePost = async (req, res) => {
 
 const deletePost = async(req,res)=>{
     try{
-        const postId = req.postParam;
-        const userId = req.user;
 
-        let post = await Post.findById(postId);
-        let user = await User.findById(userId);
-        if(post.author !== userId){
-            return setResponse(res,400,"Invalid access")
+      const postId = req.postId;
+      const user = req.user;
+      let  author = await User.findById(user._id);
+      author.post.pull(postId)
+      await author.save()
+
+      const post = await Post.findById(postId)
+      if(post.author.toHexString() !== userId._id){
+        return setResponse(res,400,"Invalid access")
+    }
+      const populatedData =  await author.populate("post post.like post.comments");
+      await Post.findByIdAndRemove({_id : postId},(err,docs)=>{
+        if(err){
+          throw err
         }
-        post = await Post.filter(({_id})=>_id !==post._id);
-        await post.save();
-        user = await user.post.pull((post)=>post===postId);
-        user.save();
-        setResponse(res,200,"Post removed",post)
+        else{
+          setResponse(res,200,populatedData)
+        }
+        
+        
+      }).clone()
+      
+      
+       
     }catch(err){
-        setResponse(res ,err.status,err.message)
+        setResponse(res ,500,err.message)
     }
 }
 
@@ -84,35 +109,50 @@ const editCaption = async(req,res)=>{
     try{
         const {caption} = req.body;
         const userId = req.user;
-        const postId = req.postParam;
+        const postId = req.postId;
 
-        let post = await Post.find(({_id})=>_id ===postId);
-        if(post.author !== userId){
-            return setResponse(res,400,"Invalid access")
-        }
-        post.caption = caption;
-        await post.save();
-        setResponse(res,200,"Post edited")
+        const post = await Post.findById(postId)
+        if(post.author.toHexString() !== userId._id){
+          return setResponse(res,400,"Invalid access")
+      }
+        await Post.findByIdAndUpdate(postId,{caption : caption},(err,docs)=>{
+          if(err){
+            throw err
+          }
+          else{
+            console.log(docs)
+            return setResponse(res,200,docs)
+          }
+          
+          
+        }).clone()
+        
 
     }catch(err){
-        setResponse(res ,err.status,err.message)     
+        setResponse(res ,500,err.message)     
     }
 }
 
 const savePost = async(req,res)=>{
     try{
-        const postId = req.postParam;
+        const postId = req.postId;
         const userId =req.user;
-
         const user = await User.findById(userId);
-        await user.savedPost.unshift(postId);
+        const isSaved = user.savePost.find((item)=>item.toHexString() === postId);
+        if(isSaved){
+          user.savePost.pull(postId);
+        }else{
+          user.savePost.unshift(postId);
+
+        }
+      
         await user.save()
         setResponse(res,200,"Post saved")
 
     }catch(err){
-        setResponse(res, err.status,err.message)
+        setResponse(res,500,err.message)
     }
 }
 
 
-module.exports ={ allPost, addPost , likePost , deletePost , editCaption };
+module.exports ={ allPost, addPost , likePost , deletePost , editCaption ,savePost};

@@ -8,6 +8,7 @@ const postRoute = require("./routes/post")
 const dbConnect = require("./dbConnect")
 const app = express();
 app.use(cors());
+app.use(express.json())
 dotenv.config()
 const port = process.env.PORT
 

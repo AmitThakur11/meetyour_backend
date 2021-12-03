@@ -2,14 +2,6 @@ const mongoose = require('mongoose');
 
 
 const userSchema = new mongoose.Schema({
-    firstname : {
-        type : String,
-        required :true
-    },
-    lastname :{
-        type :String,
-        requied : true
-    },
     username : {
         type : String,
         required:true,
@@ -33,8 +25,10 @@ const userSchema = new mongoose.Schema({
     },
     displayPic : {
         type :String,
-        default :"https://car.png"
+        default :"https://i.pinimg.com/474x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg"
     },
+    bio : String,
+    website : String,
     post :[{
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Post'
@@ -60,7 +54,7 @@ const userSchema = new mongoose.Schema({
     
 
 },{
-    timeStamp : true
+    timestamps : true
 })
 
 const User = mongoose.model('User',userSchema);
