@@ -27,8 +27,17 @@ const userSchema = new mongoose.Schema({
         type :String,
         default :"https://i.pinimg.com/474x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg"
     },
-    bio : String,
-    website : String,
+    bio : {
+        type : String,
+        default :""
+    
+    },
+    website : {
+        type : String,
+        default :""
+    
+    }
+        ,
     post :[{
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Post'

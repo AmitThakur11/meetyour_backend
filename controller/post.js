@@ -1,21 +1,19 @@
 const Post =  require("../models/post");
 const User =  require("../models/user");
-const { setResponse } =  require("../utils");
-const mongoose = require('mongoose')
+const { setResponse , cloudinary } =  require("../utils");
 
 const allPost = async (req, res) => {
   try {
-    // let userId = req.user
-    // let user = await User.findById(userId);
-    // const allPost = await Post.find({});
      await Post.find({}).populate(
       [
         {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
         {path : "author" , select :"username displayPic"},
-        {path : "like",populate : [{path : "author" , select :"username displayPic"}]}
+        {path : "like", select :"username displayPic"}
       ]
-    ).exec((err,docs)=>{
+    ).sort({ createdAt: 'desc'}).exec(async(err,docs) =>{
       if(err)throw err
+       
+     
       setResponse(res, 200, "post fetched", docs);
 
     })
@@ -28,16 +26,33 @@ const addPost = async (req, res) => {
   try {
     const { caption, media } = req.body;
     let userId = req.user;
+    console.log(media)
     if (!caption) {
       return setResponse(res, 400, "Caption needed");
     }
+    
+    let upload =  await cloudinary.uploader.upload(media[0],{
+      upload_preset : "z0t3ezb4"
+    })
+
     const user = await User.findById(userId);
-    const newPost = await new Post({ author : user._id , caption, media });
+    console.log("yahaan")
+    const newPost = await new Post({ author : user._id , caption, media : [upload?.url] });
     await newPost.save();
     await user.post.unshift(newPost._id);
-    user.save();
-    setResponse(res, 200, "post uploaded successfully");
+    await user.save();
+    await Post.findById(newPost._id).populate([
+      {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
+      {path : "author" , select :"username displayPic"},
+      {path : "like", select :"username displayPic"}
+    ]
+  ).exec((err,docs)=>{
+    if(err)throw err
+    setResponse(res, 200, "post uploaded sucessfully", docs);
+
+  })
   } catch (err) {
+    console.error(err)
     setResponse(res, 500, err.message);
   }
 };
@@ -46,7 +61,7 @@ const likePost = async (req, res) => {
   const postId = req.postId;
   const user = req.user;
   try {
-    const post = await Post.findById(postId);
+    let post = await Post.findById(postId);
 
 
     if (!post) {
@@ -54,16 +69,20 @@ const likePost = async (req, res) => {
     }
 
     
-    const liked = post.like.find((id) => id === user._id);
+    const liked = await post.like.find((id) => id.toHexString() === user._id);
+    console.log(user._id)
     if(liked) {
       await post.like.pull(user);
       post.save();
-      return setResponse(res, 200, "post unliked", post);
+      const populateData = await post.populate({path :"like", select : '_id displayPic username'});
+
+      return setResponse(res, 200, "post unliked", populateData);
     }
 
     await post.like.unshift(user);
     await post.save();
-    setResponse(res, 200, "post liked", post);
+    const populateData = await post.populate({path :"like", select : '_id displayPic username'});
+    setResponse(res, 200, "post liked", populateData);
   } catch (err) {
     setResponse(res,500, err.message);
   }

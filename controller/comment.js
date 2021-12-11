@@ -8,6 +8,9 @@ const addComment = async (req, res) => {
     const { commentText } = req.body;
     const userId = req.user;
     const postId = req.postId;
+    console.log(userId);
+    console.log(postId);
+    console.log(commentText)
     const post = await Post.findById(postId);
     const postUser = await User.findById(post.author);
     console.log(userId._id);
@@ -28,7 +31,10 @@ const addComment = async (req, res) => {
     await newComment.save();
     await post.comments.unshift(newComment._id);
     await post.save();
-    const populateData = await newComment.populate("author post like");
+    const populateData = await newComment.populate([
+      {path : "author" ,select : "displayPic username"},
+      {path : "like" ,select : "displayPic username"}
+    ]);
     setResponse(res, 200, "Comment added", { comment: populateData });
   } catch (err) {
     setResponse(res, 500, err.message);
