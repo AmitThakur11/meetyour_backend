@@ -157,7 +157,7 @@ const changeProfilePic = async(req, res)=>{
     ).clone();
 
   } catch (err) {
-    console.log(err.message)
+
     setResponse(res, 500, err.message);
   }
 };
@@ -166,17 +166,34 @@ const changeProfilePic = async(req, res)=>{
 const editProfile = async (req, res) => {
   try {
     const user = req.user;
-    const updateData = req.body;
+    const updateData  = req.body;
+    console.log(user._id)
+    if(updateData.username){
+      const isUsernameValid = await User.findOne({username : updateData.username})
+      
+      if(isUsernameValid){
+        console.log(isUsernameValid._id)
+        if(isUsernameValid._id.toHexString() !== user._id)
+          return setResponse(res,400,"username not available")
+      }
+    }
+    if(updateData.email){
+      const isEmailValid = await User.findOne({email : updateData.email})
+      if(isEmailValid){
+        if(isEmailValid._id.toHexString() !== user._id)
+        return setResponse(res,400,"username not available")
+      }
+    }
 
     await User.findByIdAndUpdate(user._id, updateData, (err, docs) => {
       if (err) throw err;
       else {
-        console.log(docs);
-        setResponse(res, 200, "profile updated", docs);
+        setResponse(res,200,"Profile updated",updateData)
       }
     }).clone();
+    
   } catch (err) {
-    setResponse(rs, 500, err.message);
+    setResponse(res, 500, err.message);
   }
 };
 

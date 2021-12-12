@@ -157,7 +157,10 @@ const savePost = async(req,res)=>{
         const postId = req.postId;
         const userId =req.user;
         const user = await User.findById(userId);
+        console.log(postId)
+        console.log(user.savePost)
         const isSaved = user.savePost.find((item)=>item.toHexString() === postId);
+        console.log(isSaved)
         if(isSaved){
           user.savePost.pull(postId);
         }else{
@@ -166,7 +169,8 @@ const savePost = async(req,res)=>{
         }
       
         await user.save()
-        setResponse(res,200,"Post saved")
+        
+        setResponse(res,200,"Post saved", user.savePost)
 
     }catch(err){
         setResponse(res,500,err.message)
