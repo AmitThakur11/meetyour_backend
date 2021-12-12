@@ -104,7 +104,7 @@ const follow = async (req, res) => {
 
     await userToFollow.save();
     user = await user.populate({path : "following" , select : "username displayPic"})
-    const userYouFollow = await userToFollow.populate({path : "following" , select : "username displayPic"})
+    const userYouFollow = await userToFollow.populate({path : "follower" , select : "username displayPic -password"})
     return setResponse(res, 200, "Followed", {user , userYouFollow});
 
     setResponse(res, 200, "Followed", populateData);
