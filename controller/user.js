@@ -93,18 +93,19 @@ const follow = async (req, res) => {
 
       await userToFollow.followers.pull(userId);
       await userToFollow.save();
-      const populateData = await user.populate({path : "following" , select : "username displayPic"})
-
-      return setResponse(res, 200, "Unfollowed", populateData);
+      user = await user.populate({path : "following" , select : "username displayPic"})
+      const userYouFollow = await userToFollow.populate({path : "following" , select : "username displayPic"})
+      return setResponse(res, 200, "Unfollowed", {user , userYouFollow});
     }
-
     await user.following.unshift(userToFollowId);
     await user.save();
 
     await userToFollow.followers.unshift(userId);
 
     await userToFollow.save();
-    const populateData = await user.populate({path : "following" , select : "username displayPic"})
+    user = await user.populate({path : "following" , select : "username displayPic"})
+    const userYouFollow = await userToFollow.populate({path : "following" , select : "username displayPic"})
+    return setResponse(res, 200, "Followed", {user , userYouFollow});
 
     setResponse(res, 200, "Followed", populateData);
   } catch (err) {
