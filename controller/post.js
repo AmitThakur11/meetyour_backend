@@ -140,7 +140,7 @@ const editCaption = async(req,res)=>{
           }
           else{
             console.log(docs)
-            return setResponse(res,200,docs)
+            return setResponse(res,200,"Caption updated",docs)
           }
           
           
