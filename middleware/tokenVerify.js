@@ -4,14 +4,13 @@ const tokenVerify = (req,res,next)=>{
     const token = req.headers.authorization;
    try{
     const userId =  jwt.verify(token,process.env.JWT_SECRET);
-    if(userId){
         req.user = userId;
         next();
-    }
+    
    }catch(err){
-       res.json({
+       res.status(500).json({
            success : false,
-           message :err.message
+           msg :"Session expired"
 
        })
    }

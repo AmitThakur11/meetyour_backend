@@ -4,8 +4,6 @@ const tokenVerify = require('../middleware/tokenVerify');
 const {userParam} = require("../middleware/getParam");
 
 route.get("/all",allUsers)
-route.use(tokenVerify);
-
 route.post("/changepic",changeProfilePic);
 route.post("/editprofile",editProfile);
 route.get("/userProfile",userProfile)

@@ -6,6 +6,7 @@ const userRoute = require('./routes/user');
 const commentRoute = require("./routes/comment")
 const postRoute = require("./routes/post")
 const dbConnect = require("./dbConnect")
+const tokenVerify = require("./middleware/tokenVerify")
 const app = express();
 app.use(cors());
 app.use(express.json({limit: '25mb'}))
@@ -22,7 +23,10 @@ app.get("/",(req,res)=>{
     res.send("working")
 })
 
+
+
 app.use("/auth",authRoute);
+app.use(tokenVerify);
 app.use("/post",postRoute);
 app.use("/user",userRoute);
 app.use("/comment",commentRoute);

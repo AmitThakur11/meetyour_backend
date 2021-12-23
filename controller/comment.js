@@ -8,18 +8,11 @@ const addComment = async (req, res) => {
     const { commentText } = req.body;
     const userId = req.user;
     const postId = req.postId;
-    console.log(userId);
-    console.log(postId);
-    console.log(commentText)
     const post = await Post.findById(postId);
     const postUser = await User.findById(post.author);
-    console.log(userId._id);
-    console.log(postUser);
     const isBlocked = await postUser.blockList.find(
       (blockUser) => blockUser.toHexString() === userId._id
     );
-    console.log(isBlocked);
-
     if (isBlocked) {
       return setResponse(res, 400, "blocked by user");
     }

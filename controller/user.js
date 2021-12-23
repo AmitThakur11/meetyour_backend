@@ -14,6 +14,13 @@ const allUsers = async(req,res)=>{
           { path: 'comments', select: "username displayPic" },
         ],
       },
+      {
+        path: "savePost",
+        populate: [
+          { path: "like", select: "username displayPic" },
+          { path: 'comments', select: "username displayPic" },
+        ],
+      },
     ])
     .exec((err, docs) => {
       if (err) throw err;
@@ -39,6 +46,13 @@ const userProfile = async (req, res) => {
             { path: 'comments', populate : "author" , select: "username displayPic post"  },
           ],
         },
+        {
+          path: "savePost",
+          populate: [
+            { path: "like", select: "username displayPic" },
+            { path: 'comments', select: "username displayPic" },
+          ],
+        },
       ])
       .exec((err, docs) => {
         if (err) throw err;
@@ -57,6 +71,13 @@ const showProfile = async (req, res) => {
         { path: "following", select: "username displayPic" },
         {
           path: "post",
+          populate: [
+            { path: "like", select: "username displayPic" },
+            { path: 'comments', select: "username displayPic" },
+          ],
+        },
+        {
+          path: "savePost",
           populate: [
             { path: "like", select: "username displayPic" },
             { path: 'comments', select: "username displayPic" },
@@ -88,19 +109,19 @@ const follow = async (req, res) => {
       (user) => user.toHexString() === userToFollowId
     );
     if (alreadyFollowed) {
-      await user.following.pull(userToFollowId);
+      user.following.pull(userToFollowId);
       await user.save();
 
-      await userToFollow.followers.pull(userId);
+      userToFollow.followers.pull(userId);
       await userToFollow.save();
       user = await user.populate({path : "following" , select : "username displayPic"})
       const userYouFollow = await userToFollow.populate({path : "followers" , select : "username displayPic"})
       return setResponse(res, 200, "Unfollowed", {user , userYouFollow});
     }
-    await user.following.unshift(userToFollowId);
+    await user.following.push(userToFollowId);
     await user.save();
 
-    await userToFollow.followers.unshift(userId);
+    await userToFollow.followers.push(userId);
 
     await userToFollow.save();
     user = await user.populate({path : "following" , select : "username displayPic"})
@@ -123,7 +144,7 @@ const blockUser = async (req, res) => {
     );
     console.log(alreadyBlock);
     if (alreadyBlock) {
-      console.log("aaya");
+
       await user.blockList.pull(userToBlockId);
       await user.save();
       return setResponse(res, 200, "User unBlocked", user);

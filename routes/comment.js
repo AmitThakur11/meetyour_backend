@@ -3,7 +3,7 @@ const { getComment ,addComment , deleteComment , likeComment } = require("../con
 const tokenVerify = require("../middleware/tokenVerify")
 const {commentParam,postParam} = require("../middleware/getParam")
 
-router.use(tokenVerify);
+
 router.get("/",getComment);
 
 

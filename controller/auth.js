@@ -16,7 +16,6 @@ const register = async(req,res)=>{
         }
 
         password = bcrypt.hashSync(password,10);
-        console.log(password)
         const newUser = await new User({username,email,password,dateOfBirth ,bio : "",website : ""})
         await newUser.save();
 
@@ -47,8 +46,7 @@ const login = async (req,res)=>{
         }
     
         const token =  jwt.sign({_id : user._id},process.env.JWT_SECRET);
-        const data  = await user.populate("post followers following savePost blockList");
-        setResponse(res,200,"Login successful",{token : token ,data})
+        setResponse(res,200,"Login successful",{token : token , data : user})
     }catch(err){
         setResponse(res,500,err.message)
     }
