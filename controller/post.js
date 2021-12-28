@@ -4,19 +4,40 @@ const { setResponse , cloudinary } =  require("../utils");
 
 const allPost = async (req, res) => {
   try {
-     await Post.find({}).populate(
-      [
+    const userId = req.user;
+    //   Post.find({}).populate(
+    //   [
+    //     {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
+    //     {path : "author" , select :"username displayPic"},
+    //     {path : "like", select :"username displayPic"}
+    //   ]
+    // ).sort({ createdAt: 'desc'}).exec(async(err,docs) =>{
+    //   if(err)throw err
+       
+     
+    //   setResponse(res, 200, "post fetched", docs);
+
+    // })
+
+    const  user = await User.findById(userId).populate([{
+      path : "following" , populate : {path : "post" , populate : [
         {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
         {path : "author" , select :"username displayPic"},
         {path : "like", select :"username displayPic"}
-      ]
-    ).sort({ createdAt: 'desc'}).exec(async(err,docs) =>{
-      if(err)throw err
-       
-     
-      setResponse(res, 200, "post fetched", docs);
-
+      ]}
+    },{path : "post" , populate : [
+      {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
+      {path : "author" , select :"username displayPic"},
+      {path : "like", select :"username displayPic"}
+    ]}])
+    
+    
+    let postData = await user.following.map(({post})=>post).flat()
+    postData = postData.concat(user.post)
+    postData = await postData.sort((a,b)=>{
+      return new Date(b.createdAt) - new Date(a.createdAt);
     })
+    setResponse(res,200,"post fetched", postData)
     
   } catch (err) {
     setResponse(res, 500, err.message);
@@ -183,17 +204,22 @@ const savePost = async(req,res)=>{
         if(isSaved){
           user.savePost.pull(postId);
           msg = "Post removed from saved"
+          await user.save()
+          const populateData = await user.populate({path : "savePost" , select : "media "})
+          return setResponse(res,200,msg, populateData.savePost)
+  
          
         }else{
           user.savePost.push(postId);
           msg = "Post saved"
+          await user.save()
+          const populateData = await user.populate({path : "savePost" , select : "media "})
+          return setResponse(res,200,msg, populateData.savePost)
+  
          
         }
       
-        await user.save()
-        const populateData = await user.populate({path : "savePost" , select : "media "})
-        setResponse(res,200,msg, populateData.savePost)
-
+       
     }catch(err){
         setResponse(res,500,err.message)
     }

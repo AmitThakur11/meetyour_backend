@@ -56,6 +56,7 @@ const userProfile = async (req, res) => {
       ])
       .exec((err, docs) => {
         if (err) throw err;
+        console.log(docs)
         setResponse(res, 200, "user fetched", docs);
       });
   } catch (err) {
