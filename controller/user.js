@@ -3,30 +3,12 @@ const User = require("../models/user");
 const {cloudinary} = require('../utils')
 const allUsers = async(req,res)=>{
   try{
-    await User.find({})
-    .populate([
-      { path: "followers", select: "username displayPic" },
-      { path: "following", select: "username displayPic" },
-      {
-        path: "post",
-        populate: [
-          { path: "like", select: "username displayPic" },
-          { path: 'comments', select: "username displayPic" },
-        ],
-      },
-      {
-        path: "savePost",
-        populate: [
-          { path: "like", select: "username displayPic" },
-          { path: 'comments', select: "username displayPic" },
-        ],
-      },
-    ])
-    .exec((err, docs) => {
-      if (err) throw err;
-      setResponse(res, 200, "user fetched", docs);
-    });
-
+    const adminId = req.user
+    const admin = await User.findById(adminId);
+    const allUser = await User.find({})
+    let exploreUser = allUser.filter(({_id})=>!admin.following.includes(_id))
+    setResponse(res,200,"fetch",exploreUser)
+   
   }catch(err){
     setResponse(res,500,err.message)
   }
@@ -87,6 +69,7 @@ const showProfile = async (req, res) => {
       ])
       .exec((err, docs) => {
         if (err) throw err;
+
         setResponse(res, 200, "user fetched", docs);
       });
   } catch (err) {
