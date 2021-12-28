@@ -5,20 +5,7 @@ const { setResponse , cloudinary } =  require("../utils");
 const allPost = async (req, res) => {
   try {
     const userId = req.user;
-    //   Post.find({}).populate(
-    //   [
-    //     {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
-    //     {path : "author" , select :"username displayPic"},
-    //     {path : "like", select :"username displayPic"}
-    //   ]
-    // ).sort({ createdAt: 'desc'}).exec(async(err,docs) =>{
-    //   if(err)throw err
-       
-     
-    //   setResponse(res, 200, "post fetched", docs);
-
-    // })
-
+   
     const  user = await User.findById(userId).populate([{
       path : "following" , populate : {path : "post" , populate : [
         {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
