@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
     },
     bio : {
         type : String,
-        default :""
+        default :"New to MeetYour."
     
     },
     website : {

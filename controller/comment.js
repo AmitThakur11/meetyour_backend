@@ -64,7 +64,7 @@ const deleteComment = async (req, res) => {
         if (err) {
           throw err;
         } else {
-          setResponse(res, 200, populatedData);
+          setResponse(res, 200,"Comment removed", populatedData);
         }
       }).clone();
     } else {

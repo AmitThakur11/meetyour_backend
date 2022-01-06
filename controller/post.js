@@ -24,7 +24,7 @@ const allPost = async (req, res) => {
     postData = await postData.sort((a,b)=>{
       return new Date(b.createdAt) - new Date(a.createdAt);
     })
-    setResponse(res,200,"post fetched", postData)
+    setResponse(res,200,"Post fetched", postData)
     
   } catch (err) {
     setResponse(res, 500, err.message);
@@ -45,7 +45,7 @@ const showPost = async (req, res) => {
       if(err)throw err
        
      
-      setResponse(res, 200, "post fetched", docs);
+      setResponse(res, 200, "Post fetched", docs);
 
     })
     
@@ -77,7 +77,7 @@ const addPost = async (req, res) => {
     ]
   ).exec((err,docs)=>{
     if(err)throw err
-    setResponse(res, 200, "post uploaded sucessfully", docs);
+    setResponse(res, 200, "Post upload sucessfully", docs);
 
   })
   } catch (err) {
@@ -94,7 +94,7 @@ const likePost = async (req, res) => {
 
 
     if (!post) {
-      return setResponse(res, 400, "post unavailable");
+      return setResponse(res, 400, "Post unavailable");
     }
 
     
@@ -104,7 +104,7 @@ const likePost = async (req, res) => {
       post.save();
       const populateData = await post.populate({path :"like", select : '_id displayPic username'});
 
-      return setResponse(res, 200, "post unliked", populateData);
+      return setResponse(res, 200, "Post unliked", populateData);
     }
 
     await post.like.unshift(user);
@@ -165,7 +165,7 @@ const editCaption = async(req,res)=>{
             throw err
           }
           else{
-            console.log(docs)
+          
             return setResponse(res,200,"Caption updated",docs)
           }
           
@@ -183,25 +183,20 @@ const savePost = async(req,res)=>{
         const postId = req.postId;
         const userId =req.user;
         const user = await User.findById(userId);
-        console.log("posId",postId)
-        console.log("user",user.savePost)
         
-        let msg = ""
         const isSaved = user.savePost.find((item)=>item.toHexString() === postId);
         if(isSaved){
           user.savePost.pull(postId);
-          msg = "Post removed from saved"
           await user.save()
           const populateData = await user.populate({path : "savePost" , select : "media "})
-          return setResponse(res,200,msg, populateData.savePost)
+          return setResponse(res,200,"Post removed from saved", populateData.savePost)
   
          
         }else{
           user.savePost.push(postId);
-          msg = "Post saved"
           await user.save()
           const populateData = await user.populate({path : "savePost" , select : "media "})
-          return setResponse(res,200,msg, populateData.savePost)
+          return setResponse(res,200,"Post saved", populateData.savePost)
   
          
         }

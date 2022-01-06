@@ -38,7 +38,7 @@ const userProfile = async (req, res) => {
       ])
       .exec((err, docs) => {
         if (err) throw err;
-        console.log(docs)
+       
         setResponse(res, 200, "user fetched", docs);
       });
   } catch (err) {
@@ -126,7 +126,6 @@ const blockUser = async (req, res) => {
     const alreadyBlock = await user.blockList.find(
       (user) => user.toHexString() === userToBlockId
     );
-    console.log(alreadyBlock);
     if (alreadyBlock) {
 
       await user.blockList.pull(userToBlockId);
@@ -156,7 +155,7 @@ const changeProfilePic = async(req, res)=>{
       (err, docs) => {
         if (err) throw err;
         else {
-          console.log(docs);
+ 
           setResponse(res, 200, "profile pic update", docs);
         }
       }
@@ -173,12 +172,11 @@ const editProfile = async (req, res) => {
   try {
     const user = req.user;
     const updateData  = req.body;
-    console.log(user._id)
+
     if(updateData.username){
       const isUsernameValid = await User.findOne({username : updateData.username})
       
       if(isUsernameValid){
-        console.log(isUsernameValid._id)
         if(isUsernameValid._id.toHexString() !== user._id)
           return setResponse(res,400,"username not available")
       }

@@ -4,7 +4,6 @@ const  User = require("../models/user.js")
 const  {setResponse} = require("../utils");
 
 const register = async(req,res)=>{
-    console.log(req.body)
     let {username , email , password , dateOfBirth } = req.body;
     try{
         let userByName = await User.findOne({username  : username});
@@ -16,10 +15,10 @@ const register = async(req,res)=>{
         }
 
         password = bcrypt.hashSync(password,10);
-        const newUser = await new User({username,email,password,dateOfBirth ,bio : "",website : ""})
+        const newUser = await new User({username,email,password,dateOfBirth ,website : ""})
         await newUser.save();
 
-        const token =  jwt.sign({_id : newUser._id},process.env.JWT_SECRET);
+        const token =  jwt.sign({_id : newUser._id},process.env.JWT_SECRET , {expiresIn : "7d" });
         const data  = await newUser.populate("post followers following savePost blockList");
         setResponse(res,200,"Registeration successful",{token , data})
 
@@ -45,7 +44,7 @@ const login = async (req,res)=>{
             return setResponse(res,400,"Incorrect password")
         }
     
-        const token =  jwt.sign({_id : user._id},process.env.JWT_SECRET);
+        const token =  jwt.sign({_id : user._id},process.env.JWT_SECRET ,{expiresIn : "7d"});
         setResponse(res,200,"Login successful",{token : token , data : user})
     }catch(err){
         setResponse(res,500,err.message)
