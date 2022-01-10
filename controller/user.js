@@ -6,8 +6,8 @@ const allUsers = async(req,res)=>{
     const adminId = req.user
     const admin = await User.findById(adminId);
     const allUser = await User.find({})
-    let exploreUser = allUser.filter(({_id})=>!admin.following.includes(_id))
-    setResponse(res,200,"fetch",exploreUser)
+    // let exploreUser = allUser.filter(({_id})=>!admin.following.includes(_id))
+    setResponse(res,200,"fetch",allUser)
    
   }catch(err){
     setResponse(res,500,err.message)
