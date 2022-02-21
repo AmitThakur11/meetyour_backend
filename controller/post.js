@@ -5,23 +5,29 @@ const { setResponse , cloudinary } =  require("../utils");
 const allPost = async (req, res) => {
   try {
     const userId = req.user;
-   
-    const  user = await User.findById(userId).populate([{
-      path : "following" , populate : {path : "post" , populate : [
-        {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
-        {path : "author" , select :"username displayPic"},
-        {path : "like", select :"username displayPic"}
-      ]}
-    },{path : "post" , populate : [
+
+    const posts = await Post.find().populate([
       {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
       {path : "author" , select :"username displayPic"},
       {path : "like", select :"username displayPic"}
-    ]}])
+    ])
+   
+    // const  user = await User.findById(userId).populate([{
+    //   path : "following" , populate : {path : "post" , populate : [
+    //     {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
+    //     {path : "author" , select :"username displayPic"},
+    //     {path : "like", select :"username displayPic"}
+    //   ]}
+    // },{path : "post" , populate : [
+    //   {path : "comments" , populate : [{path : "author" , select :"username displayPic"}]},
+    //   {path : "author" , select :"username displayPic"},
+    //   {path : "like", select :"username displayPic"}
+    // ]}])
     
     
-    let postData = await user.following.map(({post})=>post).flat()
-    postData = postData.concat(user.post)
-    postData = await postData.sort((a,b)=>{
+    // let postData = await user.following.map(({post})=>post).flat()
+    // postData = postData.concat(user.post)
+    postData = await posts.sort((a,b)=>{
       return new Date(b.createdAt) - new Date(a.createdAt);
     })
     setResponse(res,200,"Post fetched", postData)
@@ -156,21 +162,25 @@ const editCaption = async(req,res)=>{
         const userId = req.user;
         const postId = req.postId;
 
-        const post = await Post.findById(postId)
+        let post = await Post.findById(postId)
         if(post.author.toHexString() !== userId._id){
           return setResponse(res,400,"Invalid access")
       }
-        await Post.findByIdAndUpdate(postId,{caption : caption},(err,docs)=>{
-          if(err){
-            throw err
-          }
-          else{
+
+        post.caption = caption
+        
+        await post.save()
+        // await Post.findByIdAndUpdate(postId,{caption : caption},(err,docs)=>{
+        //   if(err){
+        //     throw err
+        //   }
+        //   else{
           
-            return setResponse(res,200,"Caption updated",docs)
-          }
+        //     return setResponse(res,200,"Caption updated",docs , caption)
+        //   }
+        setResponse(res,200,"Caption recently updated",post)
           
-          
-        }).clone()
+        // }).clone()
         
 
     }catch(err){
@@ -197,8 +207,6 @@ const savePost = async(req,res)=>{
           await user.save()
           const populateData = await user.populate({path : "savePost" , select : "media "})
           return setResponse(res,200,"Post saved", populateData.savePost)
-  
-         
         }
       
        
