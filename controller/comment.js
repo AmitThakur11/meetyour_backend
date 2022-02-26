@@ -75,6 +75,28 @@ const deleteComment = async (req, res) => {
   }
 };
 
+const editComment = async (req, res) => {
+  try {
+    const postId = req.postId;
+    const user = req.user;
+    const commentId = req.commentId;
+    const {newComment} = req.body;
+    const comment = await Comment.findById(commentId);
+    let post = await Post.findById(postId);
+    if(comment.author.toHexString() === user._id || post.author.toHexString()=== user._id) {
+
+      comment.comment = newComment;
+      await comment.save();
+      setResponse(res,200,"Comment edited",comment)
+    } else {
+      return setResponse(res, 400, "Invalid access");
+    }
+  } catch (err) {
+    setResponse(res, 500, err.message);
+  }
+};
+
+
 const likeComment = async(req,res)=>{
   try{
     const commentId = req.commentId;
@@ -100,4 +122,5 @@ const likeComment = async(req,res)=>{
   
 }
 
-module.exports = { getComment, addComment, deleteComment , likeComment };
+
+module.exports = { editComment, getComment , addComment, deleteComment , likeComment };
